@@ -1,0 +1,20 @@
+-- Cria o banco e os usuários. Idempotente: pode rodar várias vezes.
+IF DB_ID(N'{{DB_NAME}}') IS NULL
+CREATE DATABASE [{{DB_NAME}}];
+GO
+-- Logins vivem no servidor
+IF SUSER_ID(N'{{APP_USER}}') IS NULL
+CREATE LOGIN [{{APP_USER}}] WITH PASSWORD = N'{{APP_PASSWORD}}', CHECK_POLICY = OFF;
+GO
+IF SUSER_ID(N'{{RO_USER}}') IS NULL
+CREATE LOGIN [{{RO_USER}}] WITH PASSWORD = N'{{RO_PASSWORD}}', CHECK_POLICY = OFF;
+GO
+-- Usuários vivem dentro do banco
+USE [{{DB_NAME}}];
+GO
+IF USER_ID(N'{{APP_USER}}') IS NULL
+CREATE USER [{{APP_USER}}] FOR LOGIN [{{APP_USER}}];
+GO
+IF USER_ID(N'{{RO_USER}}') IS NULL
+CREATE USER [{{RO_USER}}] FOR LOGIN [{{RO_USER}}];
+GO

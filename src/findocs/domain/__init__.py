@@ -1,10 +1,5 @@
-"""Exceções do domínio. Todas herdam de FinDocsError."""
+"""Domínio FinDocs: exceções, modelos e análises."""
 
-class FinDocsError(Exception):
-    """Base de todos os erros do projeto."""
+from findocs.domain.exceptions import FinDocsError, NaoEncontradoError, ValidacaoError
 
-class ValidacaoError(FinDocsError):
-    """Dado inválido (CNPJ malformado, série sem nome, SQL inseguro...)"""
-
-class NaoEncontradoError(FinDocsError):
-    """Registro não existe."""
+__all__ = ["FinDocsError", "NaoEncontradoError", "ValidacaoError"]

@@ -46,6 +46,10 @@ class EstrategiaFactory:
             opcoes = ", ".join(sorted(cls._registro))
             raise ValidacaoError(f"Método desconhecido: {nome!r}. Opções: {opcoes}") from None
 
+    @classmethod
+    def nomes(cls) -> list[str]:
+        return sorted(cls._registro)
+
 @EstrategiaFactory.registrar
 class VariacaoAbsoluta(EstrategiaVariacao):
     nome = "absoluta"

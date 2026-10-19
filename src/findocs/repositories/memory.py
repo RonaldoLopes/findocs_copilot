@@ -58,7 +58,7 @@ class InMemoryCompanhiaRepository(CompanhiaRepository):
 
     def salvar_companhias(self, companhias: Sequence[Companhia]) -> int:
         for c in companhias:
-            self._dado[c.cnpj] = c
+            self._dados[c.cnpj] = c
         return len(companhias)
 
     def buscar(self, nome: str | None = None, limite: int = 20) -> list[Companhia]:
@@ -82,5 +82,46 @@ class InMemoryDemonstracaoRepository(DemonstracaoRepository):
         for i in itens:
             self._dados[(i.cnpj, i.dt_ref, i.cd_conta)] = i
         return len(itens)    
-    # Parei 30
+
+    def buscar(self, cnpj: str, dt_ref: date | None = None) -> list[ItemDemonstracao]:
+        itens = [i for i in self._dados.values() if i.cnpj == cnpj]
+        if dt_ref:
+            itens = [i for i in itens if i.dt_ref == dt_ref]
+        return sorted(itens, key=lambda i: (i.dt_ref, i.cd_conta))
+
+class InMemoryDocumentoRepository(DocumentoRepository):
+    def __init__(self) -> None:
+        self._dados: dict[str, FatoRelevante] = {}
+
+    def salvar_documentos(self, documentos: Sequence[FatoRelevante]) -> int:
+        for d in documentos:
+            existente = self._dados.get(d.id_origem)
+            if existente and existente.tem_texto and not d.tem_texto:
+                d = replace(d, texto=existente.texto) # preserva o texto já extraido
+            self._dados[d.id_origem] = d
+        return len(documentos)
+
+    def obter(self, id_origem: str) -> FatoRelevante:
+        try:
+            return self._dados[id_origem]
+        except KeyError:
+            raise NaoEncontradoError(f"Documento {id_origem} não encontrado") from None
+
+    def listar(self, *, cnpj: str | None = None, busca: str | None = None, limite: int = 20, offset: int = 0) -> list[FatoRelevante]:
+        itens = sorted(self._dados.values(), key=lambda d: d.data, reverse=True)
+        if cnpj:
+            itens = [d for d in itens if d.cnpj == cnpj]
+        if busca:
+            termo = busca.lower()
+            itens = [d for d in itens if termo in d.assunto.lower() or termo in d.empresa.lower()]
+        return itens[offset: offset + limite]
+
+    def sem_texto(self, limite: int = 100) -> list[FatoRelevante]:
+        return[d for d in self._dados.values() if not d.tem_texto][:limite]
+
+    def com_texto(self, limite: int = 1000) -> list[FatoRelevante]:
+        return [d for d in self._dados.values() if d.tem_texto][:limite]
+
+    def atualizar_texto(self, id_origem: str, texto: str) -> None:
+        self._dados[id_origem] = self.obter(id_origem).com_texto(texto)
 

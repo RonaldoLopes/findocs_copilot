@@ -74,5 +74,3 @@ class BCBClient:
 
 def series_padrao() -> Sequence[Serie]:
     return SERIES_PADRAO
-
-Passo 5: cliente da CVM 40
